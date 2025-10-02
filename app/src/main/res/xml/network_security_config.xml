@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">random-word-api.herokuapp.com</domain>
+        <domain includeSubdomains="true">api.api-ninjas.com</domain>
+        <domain includeSubdomains="true">dreamlo.com</domain>
+    </domain-config>
+</network-security-config>

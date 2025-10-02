@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- App Theme Colors -->
+    <color name="primary_blue">#134686</color>
+    <color name="accent_red">#ED3F27</color>
+    <color name="accent_yellow">#FEB21A</color>
+    <color name="background_cream">#FDF4E3</color>
+    
+    <!-- Variations for UI elements -->
+    <color name="primary_blue_dark">#0D2F5A</color>
+    <color name="primary_blue_light">#1A5DA8</color>
+    <color name="text_dark">#2C3E50</color>
+    <color name="text_light">#7F8C8D</color>
+    <color name="success_green">#27AE60</color>
+    <color name="error_red">#E74C3C</color>
+    <color name="semi_transparent">#80000000</color>
+</resources>
