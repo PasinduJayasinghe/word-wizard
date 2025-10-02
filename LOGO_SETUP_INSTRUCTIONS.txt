@@ -1,0 +1,21 @@
+HOW TO ADD THE WORD WIZARD LOGO:
+
+1. Save the logo image you provided as "logo_wordwizard.png"
+
+2. In Android Studio, navigate to:
+   app/src/main/res/drawable/
+
+3. Right-click on the "drawable" folder → Open In → Explorer/Finder
+
+4. Copy and paste your "logo_wordwizard.png" file into this folder
+
+5. Return to Android Studio - the logo will appear automatically
+
+That's it! The code is already configured to use this logo.
+
+Alternative: If you prefer different formats:
+- PNG recommended (transparent background works best)
+- Can also use JPG, but PNG is better for logos
+- File name: logo_wordwizard.png (exactly as shown)
+
+The onboarding screen will automatically display this logo!

@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Services
     private ApiService apiService;
+    private DreamloService dreamloService;
     private SharedPreferences sharedPreferences;
     private Handler timerHandler;
     private Runnable timerRunnable;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize services
         apiService = new ApiService();
+        dreamloService = new DreamloService();
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         timerHandler = new Handler();
 
@@ -359,14 +361,129 @@ public class MainActivity extends AppCompatActivity {
 
     private void submitScore(int timeInSeconds) {
         String userName = sharedPreferences.getString(KEY_USER_NAME, "Player");
-        // TODO: Implement Dreamlo API integration for leaderboard
-        // For now, just save locally
-        Toast.makeText(this, "Score: " + score + " | Time: " + timeInSeconds + "s", Toast.LENGTH_LONG).show();
+        
+        dreamloService.submitScore(userName, score, timeInSeconds, level, new DreamloService.DreamloCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean result) {
+                Toast.makeText(MainActivity.this, "Score submitted! 🎉", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, "Score saved locally", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showLeaderboard() {
-        // TODO: Implement leaderboard dialog with Dreamlo API
-        Toast.makeText(this, "Leaderboard feature coming soon!", Toast.LENGTH_SHORT).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_leaderboard, null);
+        builder.setView(dialogView);
+        
+        AlertDialog dialog = builder.create();
+        
+        TextView loadingTextView = dialogView.findViewById(R.id.loadingTextView);
+        TextView emptyTextView = dialogView.findViewById(R.id.emptyTextView);
+        android.widget.ScrollView scrollView = dialogView.findViewById(R.id.leaderboardScrollView);
+        android.widget.LinearLayout entriesContainer = dialogView.findViewById(R.id.leaderboardEntriesContainer);
+        Button closeButton = dialogView.findViewById(R.id.closeButton);
+        
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // Show loading
+        loadingTextView.setVisibility(View.VISIBLE);
+        scrollView.setVisibility(View.GONE);
+        emptyTextView.setVisibility(View.GONE);
+        
+        dialog.show();
+        
+        // Fetch leaderboard data
+        dreamloService.getTopScores(25, new DreamloService.DreamloCallback<List<LeaderboardEntry>>() {
+            @Override
+            public void onSuccess(List<LeaderboardEntry> entries) {
+                loadingTextView.setVisibility(View.GONE);
+                
+                if (entries.isEmpty()) {
+                    emptyTextView.setVisibility(View.VISIBLE);
+                    scrollView.setVisibility(View.GONE);
+                } else {
+                    scrollView.setVisibility(View.VISIBLE);
+                    populateLeaderboard(entriesContainer, entries);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                loadingTextView.setVisibility(View.GONE);
+                emptyTextView.setText("Error loading leaderboard: " + error);
+                emptyTextView.setVisibility(View.VISIBLE);
+                scrollView.setVisibility(View.GONE);
+            }
+        });
+    }
+    
+    private void populateLeaderboard(android.widget.LinearLayout container, List<LeaderboardEntry> entries) {
+        container.removeAllViews();
+        
+        for (int i = 0; i < entries.size(); i++) {
+            LeaderboardEntry entry = entries.get(i);
+            
+            android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            row.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            row.setPadding(24, 16, 24, 16);
+            
+            // Alternate row colors
+            if (i % 2 == 0) {
+                row.setBackgroundColor(Color.parseColor("#F5F5F5"));
+            } else {
+                row.setBackgroundColor(Color.WHITE);
+            }
+            
+            // Rank
+            TextView rankView = createTableCell((i + 1) + "", 2, true);
+            row.addView(rankView);
+            
+            // Name
+            TextView nameView = createTableCell(entry.getName(), 4, false);
+            nameView.setPadding(16, 0, 16, 0);
+            row.addView(nameView);
+            
+            // Score
+            TextView scoreView = createTableCell(entry.getScore() + "", 2, true);
+            scoreView.setTextColor(Color.parseColor("#FEB21A"));
+            row.addView(scoreView);
+            
+            // Time
+            TextView timeView = createTableCell(entry.getFormattedTime(), 2, true);
+            timeView.setTextColor(Color.parseColor("#134686"));
+            row.addView(timeView);
+            
+            container.addView(row);
+        }
+    }
+    
+    private TextView createTableCell(String text, int weight, boolean center) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setTextSize(14);
+        textView.setTextColor(Color.parseColor("#2C3E50"));
+        
+        android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(
+            0,
+            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+            weight
+        );
+        textView.setLayoutParams(params);
+        
+        if (center) {
+            textView.setGravity(android.view.Gravity.CENTER);
+        }
+        
+        return textView;
     }
 
     private void updateUI() {
@@ -402,6 +519,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (apiService != null) {
             apiService.shutdown();
+        }
+        if (dreamloService != null) {
+            dreamloService.shutdown();
         }
     }
 }
